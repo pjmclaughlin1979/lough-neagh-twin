@@ -1,0 +1,62 @@
+[
+  {
+    "year": 2023,
+    "date": "2023-09-04T11:36:21.183000Z",
+    "id": "S2A_29UPA_20230904_0_L2A",
+    "bounds": [
+      -6.65,
+      54.43,
+      -6.18,
+      54.8
+    ],
+    "median": 0.25475284457206726,
+    "validPercent": 97.52779975087059,
+    "validPixels": 107264,
+    "referencePixels": 109983,
+    "tileCloudCover": 0.634616,
+    "ndci": "ndci-2023.png",
+    "rgb": "rgb-2023.png",
+    "resolution": "Approx. 60 m display grid; B05 native 20 m",
+    "source": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2A_29UPA_20230904_0_L2A"
+  },
+  {
+    "year": 2024,
+    "date": "2024-09-06T11:46:16.029000Z",
+    "id": "S2B_29UPA_20240906_0_L2A",
+    "bounds": [
+      -6.65,
+      54.43,
+      -6.18,
+      54.8
+    ],
+    "median": 0.0341685526072979,
+    "validPercent": 99.89725684878572,
+    "validPixels": 109870,
+    "referencePixels": 109983,
+    "tileCloudCover": 0.479431,
+    "ndci": "ndci-2024.png",
+    "rgb": "rgb-2024.png",
+    "resolution": "Approx. 60 m display grid; B05 native 20 m",
+    "source": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_29UPA_20240906_0_L2A"
+  },
+  {
+    "year": 2025,
+    "date": "2025-07-13T11:46:17.107000Z",
+    "id": "S2B_29UPA_20250713_0_L2A",
+    "bounds": [
+      -6.65,
+      54.43,
+      -6.18,
+      54.8
+    ],
+    "median": 0.030927829444408417,
+    "validPercent": 99.68995208350381,
+    "validPixels": 109642,
+    "referencePixels": 109983,
+    "tileCloudCover": 0.887923,
+    "ndci": "ndci-2025.png",
+    "rgb": "rgb-2025.png",
+    "resolution": "Approx. 60 m display grid; B05 native 20 m",
+    "source": "https://earth-search.aws.element84.com/v1/collections/sentinel-2-l2a/items/S2B_29UPA_20250713_0_L2A"
+  }
+]
