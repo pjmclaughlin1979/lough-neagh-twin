@@ -47,3 +47,7 @@ NDCI is a chlorophyll-related optical proxy, not a calibrated concentration, cya
 Contains modified Copernicus Sentinel data. Preserve source attribution and review source licence terms before further redistribution. Network access is needed for Esri SDK/basemap, fonts and live DAERA refresh; historical overlays and fallback reports are packaged locally.
 
 The 2022 candidate was excluded because its calibration metadata was inconsistent with lake pixel values; it is not used in the published analysis.
+
+## GitHub Pages
+
+The Pages workflow tests and builds on pushes to `main`, then publishes `dist`. Relative Vite asset paths support repository subpaths. In GitHub Settings → Pages, the build source is GitHub Actions.
