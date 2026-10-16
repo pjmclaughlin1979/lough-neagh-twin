@@ -1,6 +1,6 @@
 # Lough Neagh Environmental Twin
 
-React 19 + Vite, ArcGIS Maps SDK for JavaScript **5.1**, loaded through Esri's pinned CDN and `$arcgis.import`. No ArcGIS API key is required for the public reference imagery and the locally processed overlays used here.
+React 19 + Vite, ArcGIS Maps SDK for JavaScript **5.1**, loaded through Esri's pinned CDN and `$arcgis.import`. The published application automatically requests ArcGIS Online OAuth sign-in for Living Atlas imagery. Public DAERA and weather feeds do not require an ArcGIS login.
 
 ## Run
 
@@ -14,11 +14,13 @@ npm test
 ## What is connected
 
 - DAERA/NIEA confirmed blue-green algae public FeatureServer, filtered to `LocalManagementArea = 'Lough Neagh'`. Refreshes on opening and on request, with a dated bundled fallback. Queries paginate. Observations available in this layer cover 2024–2026. Reports are not area or severity measurements.
-- Copernicus Sentinel-2 L2A COGs via Element 84 Earth Search. Real June–September low-cloud scenes selected for 2023–2025. Exact scene IDs, dates, bounds, coverage and median NDCI are in `public/data/scenes.json`; full source STAC records are retained alongside the image assets.
+- Living Atlas Sentinel-2 L2A archive. Users choose and load multiple acquisitions from the rolling three-year catalogue. NDCI and true colour maps use the active acquisition; a map click samples every chosen scene for a time chart. No preset annual satellite scenes are loaded into the application.
 - DfI water-level published snapshot, 15 October 2026: 12.464 m OD Belfast. Not a live feed or historical level matched to satellite dates.
 - DAERA near-shore chemistry and probe downloads, and AFBI/NIEA monitoring programme references are in the source catalogue. The download portal returned HTTP 403; those sensor data have not been ingested.
 
-## Satellite reproducibility and limitations
+## Legacy reference processing (retained for reproducibility)
+
+The earlier 2023–2025 processed assets and processor remain in the repository for provenance. They are no longer displayed or used in the comparison workflow. Current maps and charts use the user-selected Living Atlas acquisitions.
 
 ```
 python3 -m venv .venv
@@ -44,7 +46,7 @@ NDCI is a chlorophyll-related optical proxy, not a calibrated concentration, cya
 - https://documentation.dataspace.copernicus.eu/APIs/STAC.html
 - https://www.daera-ni.gov.uk/sites/default/files/2026-04/Appendix%203.PDF
 
-Contains modified Copernicus Sentinel data. Preserve source attribution and review source licence terms before further redistribution. Network access is needed for Esri SDK/basemap, fonts and live DAERA refresh; historical overlays and fallback reports are packaged locally.
+Contains modified Copernicus Sentinel data. Preserve source attribution and review source licence terms before further redistribution. Network access is needed for Esri SDK/basemap, fonts and live DAERA refresh; legacy reference assets and fallback reports are packaged locally.
 
 The 2022 candidate was excluded because its calibration metadata was inconsistent with lake pixel values; it is not used in the published analysis.
 
@@ -54,8 +56,8 @@ The Pages workflow tests and builds on pushes to `main`, then publishes `dist`. 
 
 ## Living Atlas archive, forecast and bathing water
 
-- `src/Archive.jsx` uses the user-supplied public OAuth client ID `CTbgT2f2BGjoPKMO`, ArcGIS IdentityManager and a same-window OAuth redirect. Register `https://pjmclaughlin1979.github.io/lough-neagh-twin/` as an allowed redirect for this app in ArcGIS. A client ID is public configuration, not a secret. No client secret, password or user token is stored in repository files. Each visitor signs in with an entitled ArcGIS account.
-- Archive service: `https://sentinel.imagery1.arcgis.com/arcgis/rest/services/Sentinel2L2A/ImageServer`. Query uses rolling three-year dates based on Europe/Dublin, `category = 1`, `0 <= cloudcover < 25`, and footprint intersection with [-6.65,54.43,-6.18,54.80]. All IDs are requested first, then records in batches up to 100; an incomplete result is an error, not a silently truncated list. Tile overlaps are preserved. Cloud cover is scene-wide, not lake-specific. Scene selection locks an ImageryLayer to that raster ID. Each archive row offers True colour and NDCI; Map layers also switches the selected acquisition between these views. Reference NDCI values remain labelled separately.
+- `src/arcgis-auth.js` uses the user-supplied public OAuth client ID `CTbgT2f2BGjoPKMO`, ArcGIS IdentityManager and a same-window OAuth redirect. Register `https://pjmclaughlin1979.github.io/lough-neagh-twin/` as an allowed redirect for this app in ArcGIS. A client ID is public configuration, not a secret. No client secret, password or user token is stored in repository files. Each visitor signs in with an entitled ArcGIS account.
+- Archive service: `https://sentinel.imagery1.arcgis.com/arcgis/rest/services/Sentinel2L2A/ImageServer`. Query uses rolling three-year dates based on Europe/Dublin, `category = 1`, `0 <= cloudcover < 25`, and footprint intersection with [-6.65,54.43,-6.18,54.80]. All IDs are requested first, then records in batches up to 100; an incomplete result is an error, not a silently truncated list. Tile overlaps are preserved. Cloud cover is scene-wide, not lake-specific. Scene selection locks an ImageryLayer to that raster ID. Each archive row has a choice checkbox. Load chosen scenes to create the acquisition strip and comparison dataset. Map layers switches the active acquisition between true colour and NDCI. The fixed year buttons and reference-scene metrics have been removed.
 - Open-Meteo `/v1/forecast` requests six days and displays tomorrow plus the following four days. Parameters are air temperatures, WMO condition code, precipitation sum/probability and 10 m wind maximum/dominant direction, at 54.61,-6.4 in Europe/Dublin. No stale forecast is substituted after errors.
 - DAERA Bathing Water dashboard source: `Bathing_Water_Monitoring_Points_Public_View_PRD/FeatureServer`. The public sites layer (0) supplies site advice; sample table (1) supplies the latest `Publish_To_Viewer = 'Yes' AND invalid_result = 'No'` record per selected site, ordered by sampling date descending then OBJECTID. Rea's Wood (site 30203) is the default. Null values remain unknown. Both CFU/100 ml labels are verified against the dashboard table headings. Old samples show their date and age, and site advice is displayed separately from sample quality.
 - Weather and bathing data refresh when the panels mount, or through their refresh buttons. The archive is retrieved after ArcGIS sign-in. No authenticated imagery is republished into the public repository.
@@ -69,8 +71,20 @@ The archive uses ArcGIS SDK 5.1 `ImageryLayer.rasterFunction` (converted from RE
 - Extract zero-based bands 3 and 4 (B4 red and B5 red edge), mask non-positive reflectance, and calculate `(B5-B4)/(B5+B4)` as float32.
 - Extract zero-based band 14 (SCL), remap class 6 water to 1 and all other classes to NoData, multiply this mask into NDCI, then clip to the existing conservative study polygon. Nearest-neighbour sampling preserves SCL categories, and the arithmetic uses the coarser input cell size. B5/SCL native resolution is 20 m; display resolution depends on map scale. No extra detail is gained by zooming. Dense blooms classified as vegetation/land may be masked out.
 - Stretch the numeric result from −0.2 to 0.4 to 0–255 with dynamic range adjustment disabled, then apply the same five colour stops as the reference snapshots. Values beyond these display limits use endpoint colours, not risk classes.
-- Map clicks use the same scene ID and masked float32 NDCI chain through `/identify`, without the stretch or colormap. NoData, invalid values and locations outside the study polygon are reported explicitly. Pixel requests are cancelled/invalidated when changing scene or display mode.
+- Map clicks use the same scene ID and masked float32 NDCI chain through `/identify`, without the stretch or colormap. NoData, invalid values and locations outside the study polygon are reported explicitly. Point-series requests are cancelled/invalidated when changing point or the chosen scene set. Changing the active scene or display mode retains the point and its time-series results.
 
 A small `/exportImage` request verifies the server accepts the selected processing chain before reporting it ready. Failures are visible; a failed scene is hidden rather than being confused with the basemap. This is on-demand image-service rendering, not a hosted raster-analysis job. No analysis job or persistent output is created. NDCI remains a dimensionless optical proxy: concentration, cyanobacteria identification and toxicity require suitable field validation.
 
 References: [Sentinel-2 service band order and scaling](https://www.arcgis.com/home/item.html?id=255af1ceee844d6da8ef8440c8f90d00), [REST raster functions](https://developers.arcgis.com/rest/services-reference/enterprise/raster-function-objects/), [Esri algae monitoring workflow](https://learn.arcgis.com/en/projects/monitor-algae-bloom-in-a-lake/).
+
+## Multi-acquisition comparison workflow
+
+1. On the published app, a valid ArcGIS session is reused; otherwise same-window OAuth sign-in starts automatically. A sessionStorage attempt marker is set before redirect to avoid cancellation/back-button loops. An explicit Sign in action retries. If sessionStorage is blocked, automatic redirects are skipped and manual sign-in remains available. Local Vite development skips the automatic redirect because the public app is registered for the GitHub Pages callback.
+2. Choose any number of catalogue acquisitions, across filters and pages, then click Load scenes. The new loaded set replaces the old one. The map starts with the latest chosen acquisition. Each acquisition remains individually selectable/removable on the chronological strip. DAERA report-year selection is independent.
+3. Click a location on the lake in NDCI, true-colour or reference-basemap mode. The app runs the existing water-masked, unstretched NDCI identify rule separately for every chosen scene, at exactly the same longitude/latitude and nominal 20 m sample size. A cross marks the sampled location. At most four identify calls run concurrently.
+4. The chart uses actual elapsed UTC acquisition time on the horizontal axis. Line segments stop at masked, failed and pending observations. Missing values appear as empty squares, not zero. Raw values beyond the map colour scale remain available and expand the chart vertical range. Close acquisition times can overlap visually; the table lists every scene separately. Chart markers, table dates and the acquisition strip all select the same map scene.
+5. The comparison summary is latest valid NDCI minus earliest valid NDCI at that point. It requires at least two valid readings and is not a fitted trend or a lake-wide statistic. CSV export preserves scene IDs/names, acquisition timestamps, scene cloud, point coordinates, raw NDCI and explicit statuses/errors.
+
+Results are cached only in memory by exact coordinates, service, scene ID and sampling configuration, with a 512-entry limit. Errors are not cached and Retry readings requests them again. Changing point or the scene set aborts the old queue, suppresses late responses and never displays another point's values as current. Switching map scene/display reuses the existing results. No subscriber imagery is copied to public hosting.
+
+Validation covers OAuth session reuse and redirect-loop prevention, queue concurrency/cancellation, valid zero versus NoData and failures, cache isolation, chronological comparisons, chart gaps and CSV export, plus live browser verification of scene selection and imagery.
