@@ -64,6 +64,7 @@ test('comparison uses earliest/latest valid values, preserves zero, breaks chart
  const summary=comparison(rows);assert.equal(summary.direction,'lower');assert.equal(summary.delta,-0.1);assert.equal(summary.first.scene.id,1);assert.equal(summary.last.scene.id,4);
  assert.deepEqual(chartSegments(rows).map(s=>s.map(r=>r.scene.id)),[[1],[3,4]]);
  assert.equal(comparison([rows[0]]),null);
+ assert.equal(comparison([rows[0],{...rows[2],scene:{...rows[2].scene,date:rows[0].scene.date}}]),null);
  const csv=seriesCsv(rows,point);assert.ok(csv.includes('"0","valid"'));assert.ok(csv.includes('"","masked"'));
  assert.ok(csv.includes('2024-01-01T00:00:00.000Z'));assert.ok(!csv.includes('undefined'));
 });

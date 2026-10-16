@@ -25,6 +25,7 @@ export function comparison(rows){
  const valid=rows.filter(r=>r.status==='valid'&&Number.isFinite(r.value));
  if(valid.length<2)return null;
  const first=valid[0],last=valid.at(-1),delta=last.value-first.value;
+ if(first.scene.date===last.scene.date)return null;
  return {first,last,delta,direction:Math.abs(delta)<0.00005?'unchanged at displayed precision':delta>0?'higher':'lower',count:valid.length};
 }
 export function chartSegments(rows){
