@@ -11,7 +11,7 @@ export default function NdciChart({scenes,point,rows,activeId,onPick,onRetry,onC
  const x=d=>end===start?(L+W-R)/2:L+(d-start)/(end-start)*(W-L-R),y=v=>H-B-(v-low)/(high-low)*(H-T-B);
  const ticks=Array.from({length:5},(_,i)=>low+(high-low)*i/4);
  function download(){const url=URL.createObjectURL(new Blob([seriesCsv(rows,point)],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='lough-neagh-point-ndci.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
- return <section className="ndci-series" aria-label="NDCI through time">
+ return <section className="ndci-series" id="ndci-comparison" aria-label="NDCI through time">
   <div className="card-heading"><div><div className="eyebrow">SAME LOCATION · EVERY CHOSEN ACQUISITION</div><h2>Relative chlorophyll through time</h2></div>{point&&<div className="series-actions"><button className="button" disabled={!!pending} onClick={onRetry}><RefreshCw size={14}/> Retry readings</button><button className="button" disabled={!rows.length||!!pending} onClick={download}><Download size={14}/> Export readings</button><button onClick={onClear}>Clear location</button></div>}</div>
   {!scenes.length?<p className="empty">Choose and load multiple scenes from the archive to start comparing.</p>:!point?<p className="empty">Click a location on the lake. NDCI will be calculated for that same location in all {scenes.length} loaded scenes, in either map display mode.</p>:<>
    <p className="live-note"><strong>{point.latitude.toFixed(5)}° N, {Math.abs(point.longitude).toFixed(5)}° W</strong> · nominal 20 m sampling · {valid.length} valid / {scenes.length} chosen · {pending?`${pending} readings pending`:'all requests finished'}{failed?` · ${failed} requests failed`:''}</p>
